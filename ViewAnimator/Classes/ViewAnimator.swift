@@ -23,6 +23,7 @@ public extension UIView {
     ///   - finalAlpha: View's alpha after the animation.
     ///   - delay: Time Delay before the animation.
     ///   - duration: TimeInterval the animation takes to complete.
+	///   - reset: Resets the Transform on completion. Only takes effect when using 'reversed'
     ///   - completion: CompletionBlock after the animation finishes.
     public func animate(animations: [Animation],
                         reversed: Bool = false,
@@ -30,8 +31,9 @@ public extension UIView {
                         finalAlpha: CGFloat = 1.0,
                         delay: Double = 0,
                         duration: TimeInterval = ViewAnimatorConfig.duration,
+						reset: Bool = false,
                         completion: CompletionBlock? = nil) {
-        
+
         let transformFrom = transform
         var transformTo = transform
         animations.forEach { transformTo = transformTo.concatenating($0.initialTransform) }
@@ -40,12 +42,15 @@ public extension UIView {
         }
 
         alpha = initialAlpha
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             UIView.animate(withDuration: duration, animations: { [weak self] in
                 self?.transform = reversed ? transformTo : transformFrom
                 self?.alpha = finalAlpha
                 }, completion: { _ in
+					if reset {
+						self.transform = CGAffineTransform.identity
+					}
                     completion?()
             })
         }
